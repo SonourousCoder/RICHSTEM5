@@ -1,0 +1,1214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <title>Musical Generation Picker</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #181d2b;
+      color: #fff;
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+    }
+    .container {
+      margin-top: 40px;
+      background: #242946;
+      border-radius: 16px;
+      padding: 36px 30px 24px 30px;
+      box-shadow: 0 12px 48px rgba(0,0,0,0.25);
+      max-width: 540px;
+      width: 100%;
+    }
+    h1 {
+      margin-top: 0;
+      font-size: 2em;
+      color: #ffd369;
+      text-align: center;
+    }
+    label {
+      font-weight: bold;
+      display: block;
+      margin-bottom: 12px;
+    }
+    input[type="date"] {
+      padding: 9px;
+      border-radius: 6px;
+      border: none;
+      font-size: 1.1em;
+      margin-bottom: 24px;
+      width: 100%;
+    }
+    button {
+      background: #ffd369;
+      color: #181d2b;
+      border: none;
+      padding: 12px 18px;
+      font-size: 1em;
+      font-weight: bold;
+      border-radius: 8px;
+      cursor: pointer;
+      margin: 8px 6px 0 0;
+      transition: background 0.2s;
+    }
+    button:disabled {
+      background: #888;
+      color: #bbb;
+      cursor: not-allowed;
+    }
+    .generation-section {
+      margin-top: 14px;
+      line-height: 1.6;
+      background: #1a1f34;
+      border-radius: 12px;
+      padding: 26px 28px 18px 28px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.10);
+    }
+    .song-list, .top-songs, .artists {
+      margin-bottom: 12px;
+      margin-top: 6px;
+    }
+    .emoji {
+      font-size: 2em;
+      margin-right: 8px;
+    }
+    .music-player {
+      margin: 10px 0 20px 0;
+      background: #161a29;
+      border-radius: 6px;
+      padding: 10px;
+      text-align: center;
+    }
+    .music-player iframe {
+      display: block;
+      width: 100%;
+      border-radius: 6px;
+    }
+    .likes-buttons {
+      display: flex;
+      gap: 24px;
+      margin: 22px 0 0 0;
+      justify-content: center;
+    }
+    .likes-buttons button {
+      width: 100px;
+    }
+    .disabled-message {
+      color: #ff7676;
+      font-weight: bold;
+      margin-top: 10px;
+      text-align: center;
+    }
+    .meta {
+      font-size: 0.98em;
+      color: #a0b3e8;
+    }
+  </style>
+</head>
+<body>
+  <div class="container" id="app">
+    <h1>What's Your Musical Generation?</h1>
+    <div id="step-dob">
+      <label for="dob">Enter your date of birth:</label>
+      <input type="date" id="dob" max="">
+      <button id="submit-dob">Find My Vibe</button>
+    </div>
+    <div id="step-generation" style="display:none;">
+      <!-- Generation info gets rendered here -->
+    </div>
+    <div id="step-detailed" style="display:none;">
+      <!-- Detailed generation view with fun facts gets rendered here -->
+    </div>
+  </div>
+<script>
+const generations = [
+  {
+    name: "The Pre-20th Century (Before 1900s)",
+    years: [0, 1899],
+    genres: "Classical, Opera, Folk, Spirituals",
+    mood: "Fancy wigs, candlelit pianos, and orchestras dueling with emotion.",
+    artists: "Beethoven, Mozart, traditional tribal music, chants, hymns",
+    phrase: "“If it’s not Baroque, don’t fix it.”",
+    emoji: "🎻",
+    songDemos: [
+      {title: "Mozart - Eine kleine Nachtmusik", url: "https://www.youtube.com/watch?v=oy2zDJPIgwc"},
+      {title: "Gregorian Chant", url: "https://www.youtube.com/watch?v=z96qe75LOF8"}
+    ],
+    topSongs: [
+      "Beethoven: Symphony No. 9",
+      "Chopin: Nocturne Op.9 No.2",
+      "Mozart: Requiem"
+    ],
+    instruments: "Piano, harpsichord, violin, pipe organ, cello, flute, voice",
+    about: "Composers like Beethoven and Mozart defined western classical music. Folk music and traditional chants fed community and spiritual life. Intricate melodies, counterpoint, and orchestral grandeur were the norm.",
+    funFacts: [
+      "Beethoven composed his most famous works while completely deaf!",
+      "Mozart wrote his first symphony at age 8.",
+      "The harpsichord was the piano's predecessor and couldn't play soft or loud - only one volume level.",
+      "Gregorian chants were named after Pope Gregory I, who organized church music in the 6th century.",
+      "The pipe organ is considered the 'King of Instruments' and can have over 10,000 pipes!"
+    ]
+  },
+  {
+    name: "The Early 1900s – Roaring Twenties (1900–1929)",
+    years: [1900, 1929],
+    genres: "Ragtime, Jazz, Blues",
+    mood: "Speakeasies, flapper girls, and jazz hands.",
+    artists: "Louis Armstrong, Bessie Smith, Scott Joplin",
+    phrase: "Jazz said, “Let’s improvise!” and music never looked back.",
+    emoji: "🎷",
+    songDemos: [
+      {title: "Track-1", url: "https://www.youtube.com/watch?v=ZMQqmCPp59w&list=PLyZN8nxGCz0uv0lrT0bgPUbX6GW_AC9ef"},
+      {title: "Track-2", url: "https://www.youtube.com/watch?v=6vFlodkwDOU&list=PLyZN8nxGCz0uv0lrT0bgPUbX6GW_AC9ef&index=15"}
+    ],
+    topSongs: [
+      "Scott Joplin: Maple Leaf Rag",
+      "Louis Armstrong: What a Wonderful World (later hit)",
+      "Bessie Smith: Downhearted Blues"
+    ],
+    instruments: "Piano, trumpet, clarinet, upright bass, drums",
+    about: "Jazz and Blues revolutionized music. Ragtime brought syncopation; jazz gave birth to improvisation, wild solos, and speakeasy spirit.",
+    funFacts: [
+      "Louis Armstrong was the first jazz musician to popularize scat singing (improvised vocal sounds).",
+      "Scott Joplin's 'Maple Leaf Rag' was the first instrumental sheet music to sell over a million copies.",
+      "The term 'jazz' originally had negative connotations and was considered slang.",
+      "Bessie Smith was known as the 'Empress of the Blues' and was the highest-paid Black entertainer of her time.",
+      "The 1920s saw the first commercial radio broadcasts, which helped spread jazz nationwide."
+    ]
+  },
+  {
+    name: "The 1930s–1940s – War Era",
+    years: [1930, 1949],
+    genres: "Swing, Big Band, Country, Gospel",
+    mood: "Dancing your problems away while the world’s on fire.",
+    artists: "Duke Ellington, Glenn Miller, Billie Holiday",
+    phrase: "“I can’t hear the bombs over this sax solo.”",
+    emoji: "🕴️",
+    songDemos: [
+      {title: "Track-1", url: "https://www.youtube.com/watch?v=_CI-0E_jses"}
+    ],
+    topSongs: [
+      "Glenn Miller: In the Mood",
+      "Duke Ellington: Take the 'A' Train",
+      "Billie Holiday: Strange Fruit"
+    ],
+    instruments: "Saxophone, trumpet, double bass, piano, drums, guitar",
+    about: "Big Bands and swing ruled the airwaves. In tough times, music helped people dance and dream; country and gospel gave comfort and hope.",
+    funFacts: [
+      "Glenn Miller's plane disappeared over the English Channel in 1944 - he was never found.",
+      "Duke Ellington wrote over 1,000 compositions in his lifetime.",
+      "Billie Holiday's 'Strange Fruit' was one of the first protest songs about racial violence.",
+      "Big bands typically had 10-25 musicians, including multiple saxophones, trumpets, and trombones.",
+      "Swing dancing became so popular that dance halls had to enforce 'no jitterbug' rules to prevent injuries!"
+    ]
+  },
+  {
+    name: "The 1950s – Birth of Rock ‘n’ Roll",
+    years: [1950, 1959],
+    genres: "Rock ‘n’ Roll, Doo-Wop, R&B",
+    mood: "Leather jackets, jukeboxes, and rebellion.",
+    artists: "Elvis Presley, Chuck Berry, Little Richard",
+    phrase: "Music starts to wiggle its hips… and parents start panicking.",
+    emoji: "🎸",
+    songDemos: [
+      {title: "Rock n Roll Instrumental", url: "https://www.youtube.com/watch?v=iZMByT7N9OY&list=PL147A9E72762254A1"}
+    ],
+    topSongs: [
+      "Elvis Presley: Jailhouse Rock",
+      "Chuck Berry: Johnny B. Goode",
+      "Little Richard: Tutti Frutti"
+    ],
+    instruments: "Electric guitar, piano, upright bass, drums, saxophone",
+    about: "Rock 'n' roll changed everything, infusing R&B and country influences, electrifying the teen scene. Doo-wop harmonies echoed in street corners.",
+    funFacts: [
+      "Elvis Presley's first single 'That's All Right' was recorded in 1954 at Sun Studio in Memphis.",
+      "Chuck Berry's 'Johnny B. Goode' was the first rock song sent into space on the Voyager Golden Record.",
+      "Little Richard's 'Tutti Frutti' was originally about sex, but the lyrics were changed to be radio-friendly.",
+      "The term 'rock and roll' was originally slang for sex in African American communities.",
+      "Elvis was so controversial that TV cameras only filmed him from the waist up during his first TV appearance!"
+    ]
+  },
+  {
+    name: "The 1960s – Revolution & Psychedelia",
+    years: [1960, 1969],
+    genres: "Rock, Folk, Motown, Psychedelic Rock",
+    mood: "Peace, love, protests, and a lot of guitar solos.",
+    artists: "The Beatles, Bob Dylan, Jimi Hendrix, The Supremes",
+    phrase: "“Let’s expand our minds, maaaan.”",
+    emoji: "🧠",
+    songDemos: [
+      {title: "Rock n Roll Instrumental", url: "https://www.youtube.com/watch?v=Wus1zguVcUw"}
+    ],
+    topSongs: [
+      "The Beatles: Hey Jude",
+      "Jimi Hendrix: Purple Haze",
+      "The Supremes: Stop! In The Name Of Love"
+    ],
+    instruments: "Electric & acoustic guitar, organ, tambourine, bass, drums, sitar",
+    about: "Revolution in music: protest songs, psychedelic tones, Motown harmonies, and guitar gods. The music world got trippy, political, and expansive.",
+    funFacts: [
+      "The Beatles' 'Sgt. Pepper's Lonely Hearts Club Band' took 700 hours to record - unprecedented at the time.",
+      "Jimi Hendrix was left-handed but played right-handed guitars flipped upside down.",
+      "Bob Dylan's 'Like a Rolling Stone' was originally 20 pages long and was cut down to 6 minutes.",
+      "Motown Records had a 'Quality Control' meeting every Friday where songs were voted on before release.",
+      "The Woodstock Festival in 1969 had over 400,000 attendees but was only expected to draw 50,000."
+    ]
+  },
+  {
+    name: "The 1970s – Disco Fever & Heavy Metal",
+    years: [1970, 1979],
+    genres: "Disco, Funk, Rock, Punk, Metal",
+    mood: "Glitter, afros, rebellion, and angry guitar riffs.",
+    artists: "Queen, ABBA, Led Zeppelin, Bee Gees, Black Sabbath",
+    phrase: "“Stayin’ alive” while headbanging? Yes, please.",
+    emoji: "🕺",
+    songDemos: [
+      {title: "Rock n Roll Instrumental", url: "https://www.youtube.com/watch?v=Jyq8-fmmvq4"}
+    ],
+    topSongs: [
+      "Bee Gees: Stayin’ Alive",
+      "Led Zeppelin: Stairway to Heaven",
+      "Queen: Bohemian Rhapsody"
+    ],
+    instruments: "Electric guitar, synthesizer, drum kit, bass, strings, brass",
+    about: "An explosion of diversity: disco balls, funk grooves, thunderous riffs, punk attitude, and the birth of metal. Dancing and rebellion united a generation.",
+    funFacts: [
+      "Queen's 'Bohemian Rhapsody' was initially rejected by record executives who thought it was too long and weird.",
+      "The Bee Gees wrote 'Stayin' Alive' in one day and it became one of the best-selling singles of all time.",
+      "Led Zeppelin's 'Stairway to Heaven' is the most requested song on radio, despite never being released as a single.",
+      "Black Sabbath's Tony Iommi lost the tips of two fingers in a factory accident, which influenced his heavy, downtuned guitar style.",
+      "Disco Demolition Night in 1979 saw 50,000 disco records blown up at a baseball game, signaling the genre's decline."
+    ]
+  },
+  {
+    name: "The 1980s – Synths & Pop Explosion",
+    years: [1980, 1989],
+    genres: "Pop, New Wave, Hair Metal, Hip-Hop (early days)",
+    mood: "Neon, spandex, boomboxes, and lots of hairspray.",
+    artists: "Michael Jackson, Madonna, Prince, Run-D.M.C., Whitney Houston",
+    phrase: "“Let’s add a synth to everything.”",
+    emoji: "🎹",
+    songDemos: [
+      {title: "Synthpop Demo", url: "https://www.youtube.com/watch?v=ROG5ap_9sII"}
+    ],
+    topSongs: [
+      "Michael Jackson: Billie Jean",
+      "Madonna: Like a Virgin",
+      "Prince: Purple Rain"
+    ],
+    instruments: "Synthesizer, keytar, electric guitar, drum machine, saxophone",
+    about: "Synthesizers, pop hooks, and power ballads. Music videos exploded, fashion was wild, and both pop and hip-hop took the stage.",
+    funFacts: [
+      "Michael Jackson's 'Thriller' music video cost $500,000 to make - the most expensive music video at the time.",
+      "Prince wrote 'Purple Rain' in just one day and it became his signature song.",
+      "MTV launched in 1981 and changed how music was consumed forever.",
+      "The Yamaha DX7 synthesizer, released in 1983, became the best-selling synthesizer in history.",
+      "Madonna's 'Like a Virgin' was controversial for its suggestive lyrics and performance at the first MTV Video Music Awards."
+    ]
+  },
+  {
+    name: "The 1990s – Grunge, Rap, and R&B",
+    years: [1990, 1999],
+    genres: "Grunge, Hip-Hop, R&B, Alternative Rock, Boy Bands",
+    mood: "Flannel shirts, angst, and smooth slow jams.",
+    artists: "Nirvana, Tupac, Backstreet Boys, Mariah Carey, Eminem",
+    phrase: "“It’s not a phase, mom—it’s my identity.”",
+    emoji: "📼",
+    songDemos: [
+      {title: "90s R&B Demo", url: "https://www.youtube.com/watch?v=TLveqktfeiw"}
+    ],
+    topSongs: [
+      "Nirvana: Smells Like Teen Spirit",
+      "Mariah Carey: Fantasy",
+      "Tupac: California Love"
+    ],
+    instruments: "Electric guitar, bass, drum kit, sampler, turntables",
+    about: "The sound got raw, emotional, and rebellious. Grunge and hip-hop rose together, R&B melted hearts, and alternative was everywhere.",
+    funFacts: [
+      "Nirvana's 'Smells Like Teen Spirit' was named after a deodorant brand.",
+      "Tupac recorded 'California Love' in just one take.",
+      "Mariah Carey's 'Fantasy' was the first song by a female artist to debut at #1 on the Billboard Hot 100.",
+      "The Backstreet Boys' 'I Want It That Way' was written in Swedish first, then translated to English.",
+      "Grunge fashion (flannel, ripped jeans) became mainstream despite the anti-fashion attitude of the movement."
+    ]
+  },
+  {
+    name: "The 2000s – Digital Boom & Genre Blending",
+    years: [2000, 2009],
+    genres: "Pop-Punk, Emo, Crunk, Indie, Auto-Tune Pop",
+    mood: "MySpace, MP3 players, skinny jeans, and emotional lyrics.",
+    artists: "Beyoncé, Linkin Park, Britney Spears, Kanye West, Rihanna",
+    phrase: "“We burn CDs, we feel feelings, we vibe.”",
+    emoji: "📱",
+    songDemos: [
+      {title: "Pop Punk Demo", url: "https://www.youtube.com/watch?v=gxKX_mB_nrU"}
+    ],
+    topSongs: [
+      "Britney Spears: Toxic",
+      "Linkin Park: In the End",
+      "Rihanna: Umbrella"
+    ],
+    instruments: "Electric guitar, bass, drum machines, synths, samplers",
+    about: "Genre lines blurred. Pop-punk, R&B, hip-hop, and indie collided as digital music ruled the world. Auto-tune and emotional lyrics defined the sound.",
+    funFacts: [
+      "Britney Spears' 'Toxic' was originally written for Kylie Minogue but she turned it down.",
+      "Linkin Park's 'In the End' was the band's breakthrough hit and stayed on the charts for over a year.",
+      "Kanye West's '808s & Heartbreak' album popularized auto-tune in hip-hop, despite initial criticism.",
+      "iTunes was launched in 2001 and revolutionized how people bought music.",
+      "Rihanna's 'Umbrella' was originally written for Britney Spears, but her label rejected it."
+    ]
+  },
+  {
+    name: "The 2010s – Streaming Era Begins",
+    years: [2010, 2019],
+    genres: "Trap, EDM, Indie Pop, K-Pop, Bedroom Pop",
+    mood: "YouTube covers to Spotify stardom.",
+    artists: "Drake, Taylor Swift, BTS, Billie Eilish, The Weeknd",
+    phrase: "“Why own music when you can stream emotions?”",
+    emoji: "🎧",
+    songDemos: [
+      {title: "Modern Pop EDM", url: "https://www.youtube.com/watch?v=TW9d8vYrVFQ&list=PLRBp0Fe2GpglBI6sZxi8kagjLLQQDAP7C&index=34"}
+    ],
+    topSongs: [
+      "Drake: God's Plan",
+      "Taylor Swift: Blank Space",
+      "BTS: Dynamite"
+    ],
+    instruments: "Synths, digital audio workstation, MIDI, vocal processing",
+    about: "Music went digital and global: streaming platforms, viral songs, bedroom studios, and K-pop domination. Trap and EDM conquered charts.",
+    funFacts: [
+      "Taylor Swift removed all her music from Spotify in 2014 to protest low streaming royalties, then returned in 2017.",
+      "BTS became the first K-pop group to top the Billboard 200 chart with 'Love Yourself: Tear' in 2018.",
+      "Billie Eilish recorded her debut album 'When We All Fall Asleep' in her brother's bedroom studio.",
+      "Drake's 'God's Plan' music video featured him giving away $996,631.19 to people in Miami.",
+      "Spotify reached 100 million paid subscribers in 2018, marking the shift from ownership to access."
+    ]
+  },
+  {
+    name: "The 2020s – Chaos, TikTok, and Vibes",
+    years: [2020, 2100],
+    genres: "Hyperpop, Drill, Lo-fi, Alt R&B, Global Sounds (Afrobeats, K-Pop)",
+    mood: "Genre doesn’t matter—vibes do.",
+    artists: "Olivia Rodrigo, Ice Spice, Bad Bunny, Stray Kids, Doja Cat, SZA",
+    phrase: "“This song slaps… found it on a 7-second TikTok.”",
+    emoji: "📲",
+    songDemos: [
+      {title: "Hyperpop Demo", url: "https://www.youtube.com/watch?v=3f_sbFs6_F4"}
+    ],
+    topSongs: [
+      "Olivia Rodrigo: drivers license",
+      "Bad Bunny: Titi Me Preguntó",
+      "Doja Cat: Say So"
+    ],
+    instruments: "Laptop, FL Studio, beat machines, samples, 808s, global rhythms",
+    about: "Anything goes: TikTok sounds, streaming, hyperpop, afrobeats, drill, K-pop, and even lo-fi for studying. Music's changing faster than ever before.",
+    funFacts: [
+      "Olivia Rodrigo's 'drivers license' broke Spotify's record for most streams in a single day for a non-holiday song.",
+      "Bad Bunny became the most-streamed artist on Spotify in 2022, marking the rise of Spanish-language music globally.",
+      "TikTok has become the primary music discovery platform, with songs going viral in seconds.",
+      "Doja Cat's 'Say So' became a hit after a TikTok dance challenge went viral.",
+      "Lo-fi hip hop beats became a billion-dollar industry, with 24/7 YouTube livestreams for studying and relaxation."
+    ]
+  }
+];
+
+document.addEventListener('DOMContentLoaded', function() {
+  // Set max date for DOB input to today
+  document.getElementById('dob').max = new Date().toISOString().split('T')[0];
+
+  const stepDob = document.getElementById("step-dob");
+  const stepGeneration = document.getElementById("step-generation");
+  const stepDetailed = document.getElementById("step-detailed");
+
+  let userGenerationIndex = null;
+
+  document.getElementById("submit-dob").onclick = function() {
+    const dobValue = document.getElementById("dob").value;
+    if (!dobValue) {
+      alert("Please enter your date of birth!");
+      return;
+    }
+    const year = (new Date(dobValue)).getFullYear();
+    userGenerationIndex = getGenerationIndexByYear(year);
+
+    if (userGenerationIndex === -1) {
+      alert("Couldn't determine your generation from the date. Please try again.");
+      return;
+    }
+    // Go to generation info page
+    renderGenerationScreen(userGenerationIndex);
+    stepDob.style.display = 'none';
+    stepGeneration.style.display = '';
+  };
+
+  function getGenerationIndexByYear(year) {
+    for (let i=0; i<generations.length; ++i) {
+      let [start, end] = generations[i].years;
+      if (year >= start && year <= end)
+        return i;
+    }
+    return -1;
+  }
+
+  function getYouTubeId(url) {
+    if (!url) return null;
+    const match = url.match(
+      /(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([a-zA-Z0-9_-]{6,})/
+    );
+    return match ? match[1] : null;
+  }
+
+  function buildYouTubeEmbed(url) {
+    const id = getYouTubeId(url);
+    if (!id) return null;
+    return `https://www.youtube.com/embed/${id}`;
+  }
+
+  function renderGenerationScreen(genIdx) {
+    const gen = generations[genIdx];
+    let demoList = '';
+    gen.songDemos.forEach((demo, i) => {
+      const embedUrl = buildYouTubeEmbed(demo.url);
+      // Use audio tag, preload demo
+      demoList += `
+        <div class="music-player">
+          <strong>🎶 ${demo.title}</strong><br>
+          ${
+            embedUrl
+              ? `<iframe style="width:100%;aspect-ratio:16/9;margin-top:8px;border:0;" src="${embedUrl}" title="${demo.title}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>`
+              : `<div class="meta" style="margin-top:8px;">Add YouTube URL for this track.</div>`
+          }
+        </div>
+      `;
+    });
+    // Top songs
+    let topSongsHtml = "<ul>";
+    gen.topSongs.forEach(song => { topSongsHtml += "<li>"+song+"</li>";});
+    topSongsHtml += "</ul>";
+
+    // Navigation
+    let navButtons = '';
+    // Like/Dislike only if not at edge
+    let noPast = (genIdx === 0);
+    let noFuture = (genIdx === generations.length-1);
+
+    // Main "Do you like this?" question
+    navButtons += `
+      <div class="likes-buttons">
+        <button id="like-yes">👍 I like it!</button>
+        <button id="like-no">👎 Not my vibe</button>
+      </div>
+    `;
+
+    let pathButtons = "";
+    if (!noPast) {
+      pathButtons += `<button id="to-past" style="margin-top:6px;">⬅ Explore Past Generation</button>`;
+    } else {
+      pathButtons += `<button disabled>No more past generations</button>`;
+    }
+
+    if (!noFuture) {
+      pathButtons += `<button id="to-future" style="margin-top:6px;">Explore Future Generation ➡</button>`;
+    } else {
+      pathButtons += `<button disabled>No more future generations</button>`;
+    }
+
+    let genSection = `
+      <div class="generation-section" >
+        <div class="meta"><span class="emoji">${gen.emoji}</span> <span style="font-size:1.12em;font-weight:bolder">${gen.name}</span></div>
+        <div style="font-style:italic;color:#b4bfec">${gen.genres} · ${gen.mood}</div>
+        <div class="artists"><b>Key Artists:</b> ${gen.artists}</div>
+        <div><b>Motto/Quote:</b> <span style="color:#ffd369">${gen.phrase}</span></div>
+        <div class="song-list"><b>Demo Instrumental Tracks:</b>${demoList}</div>
+        <div class="top-songs"><b>Top Songs from this Era:</b> ${topSongsHtml}</div>
+        <div><b>Common Instruments:</b> ${gen.instruments}</div>
+        <div style="margin:7px 0 15px 0;"><b>About this generation:</b><br> ${gen.about}</div>
+        <div class="meta" style="margin-bottom:10px;">
+           You are in the <b>${ordinalSuffix(genIdx+1)} out of ${generations.length} musical generations</b>.
+        </div>
+        ${navButtons}
+        <div id="choose-paths" style="display:none;margin-top:12px;">
+          <div style="font-size:1em;font-weight:bold;margin-bottom:8px;">Where would you like to go?</div>
+          ${pathButtons}
+        </div>
+      </div>
+    `;
+    stepGeneration.innerHTML = `
+      <h1>Your Musical Generation</h1>
+      ${genSection}
+      <div style="margin:18px 0 0 0; text-align:center;">
+        <button id="restart">🔄 Start Over</button>
+      </div>
+    `;
+
+    // After render attaches
+    document.getElementById("like-yes").onclick = () => {
+      renderDetailedView(genIdx);
+      stepGeneration.style.display = 'none';
+      stepDetailed.style.display = '';
+    };
+    document.getElementById("like-no").onclick = () => {
+      // Show two pathway buttons
+      document.getElementById("choose-paths").style.display = "";
+    };
+
+    const btnPast = document.getElementById("to-past");
+    const btnFuture = document.getElementById("to-future");
+    if(btnPast) {
+      btnPast.onclick = function() {
+        if (genIdx === 0) {
+          // This should not happen
+          alert("No more past generations to explore.");
+        } else {
+          renderGenerationScreen(genIdx - 1);
+        }
+      };
+    }
+    if(btnFuture) {
+      btnFuture.onclick = function() {
+        if (genIdx === generations.length-1) {
+          alert("No more future generations to explore.");
+        } else {
+          renderGenerationScreen(genIdx + 1);
+        }
+      };
+    }
+
+    document.getElementById("restart").onclick = function() {
+      stepGeneration.style.display = 'none';
+      stepDetailed.style.display = 'none';
+      stepDob.style.display = '';
+      // Reset any state
+      document.getElementById('dob').value = '';
+    };
+  }
+
+  function renderDetailedView(genIdx) {
+    const gen = generations[genIdx];
+    
+    // Build demo tracks
+    let demoList = '';
+    gen.songDemos.forEach((demo, i) => {
+      const embedUrl = buildYouTubeEmbed(demo.url);
+      demoList += `
+        <div class="music-player">
+          <strong>🎶 ${demo.title}</strong><br>
+          ${
+            embedUrl
+              ? `<iframe style="width:100%;aspect-ratio:16/9;margin-top:8px;border:0;" src="${embedUrl}" title="${demo.title}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>`
+              : `<div class="meta" style="margin-top:8px;">Add YouTube URL for this track.</div>`
+          }
+        </div>
+      `;
+    });
+    
+    // Top songs
+    let topSongsHtml = "<ul>";
+    gen.topSongs.forEach(song => { topSongsHtml += "<li>"+song+"</li>";});
+    topSongsHtml += "</ul>";
+
+    // Fun facts
+    let funFactsHtml = "<ul style='list-style-type: none; padding-left: 0;'>";
+    gen.funFacts.forEach(fact => {
+      funFactsHtml += `<li style='margin: 10px 0; padding-left: 20px; position: relative;'><span style='position: absolute; left: 0;'>✨</span>${fact}</li>`;
+    });
+    funFactsHtml += "</ul>";
+
+    let detailedSection = `
+      <div class="generation-section">
+        <div class="meta"><span class="emoji">${gen.emoji}</span> <span style="font-size:1.12em;font-weight:bolder">${gen.name}</span></div>
+        <div style="font-style:italic;color:#b4bfec; margin-bottom: 20px;">${gen.genres} · ${gen.mood}</div>
+        
+        <div style="background: #1a1f34; border-radius: 8px; padding: 20px; margin: 20px 0;">
+          <h2 style="color: #ffd369; margin-top: 0;">📚 All About This Generation</h2>
+          <div class="artists"><b>Key Artists:</b> ${gen.artists}</div>
+          <div style="margin-top: 12px;"><b>Motto/Quote:</b> <span style="color:#ffd369">${gen.phrase}</span></div>
+          <div style="margin-top: 12px;"><b>Common Instruments:</b> ${gen.instruments}</div>
+          <div style="margin: 15px 0;"><b>About this generation:</b><br> ${gen.about}</div>
+        </div>
+
+        <div class="song-list" style="margin: 20px 0;"><b>Demo Instrumental Tracks:</b>${demoList}</div>
+        
+        <div class="top-songs" style="margin: 20px 0;"><b>Top Songs from this Era:</b> ${topSongsHtml}</div>
+
+        <div style="background: #1a1f34; border-radius: 8px; padding: 20px; margin: 20px 0;">
+          <h2 style="color: #ffd369; margin-top: 0;">🎉 Fun Facts</h2>
+          ${funFactsHtml}
+        </div>
+
+        <div class="meta" style="margin: 20px 0 10px 0;">
+           You are in the <b>${ordinalSuffix(genIdx+1)} out of ${generations.length} musical generations</b>.
+        </div>
+      </div>
+    `;
+    
+    stepDetailed.innerHTML = `
+      <h1>Your Musical Generation - Deep Dive</h1>
+      ${detailedSection}
+      <div style="margin:18px 0 0 0; text-align:center;">
+        <button id="back-to-generation" style="margin-right: 10px;">⬅ Back to Generation</button>
+        <button id="restart-detailed">🔄 Start Over</button>
+      </div>
+    `;
+
+    // Attach event handlers
+    document.getElementById("back-to-generation").onclick = function() {
+      stepDetailed.style.display = 'none';
+      stepGeneration.style.display = '';
+    };
+
+    document.getElementById("restart-detailed").onclick = function() {
+      stepDetailed.style.display = 'none';
+      stepGeneration.style.display = 'none';
+      stepDob.style.display = '';
+      document.getElementById('dob').value = '';
+    };
+  }
+
+  function ordinalSuffix(num) {
+    if (num % 10 == 1 && num % 100 != 11) return num + "st";
+    if (num % 10 == 2 && num % 100 != 12) return num + "nd";
+    if (num % 10 == 3 && num % 100 != 13) return num + "rd";
+    return num + "th";
+  }
+});
+</script>
+</body>
+</html>
+];
+
+document.addEventListener('DOMContentLoaded', function() {
+  // Set max date for DOB input to today
+  document.getElementById('dob').max = new Date().toISOString().split('T')[0];
+
+  const stepDob = document.getElementById("step-dob");
+  const stepGeneration = document.getElementById("step-generation");
+  const stepDetailed = document.getElementById("step-detailed");
+
+  let userGenerationIndex = null;
+
+  document.getElementById("submit-dob").onclick = function() {
+    const dobValue = document.getElementById("dob").value;
+    if (!dobValue) {
+      alert("Please enter your date of birth!");
+      return;
+    }
+    const year = (new Date(dobValue)).getFullYear();
+    userGenerationIndex = getGenerationIndexByYear(year);
+
+    if (userGenerationIndex === -1) {
+      alert("Couldn't determine your generation from the date. Please try again.");
+      return;
+    }
+    // Go to generation info page
+    renderGenerationScreen(userGenerationIndex);
+    stepDob.style.display = 'none';
+    stepGeneration.style.display = '';
+  };
+
+  function getGenerationIndexByYear(year) {
+    for (let i=0; i<generations.length; ++i) {
+      let [start, end] = generations[i].years;
+      if (year >= start && year <= end)
+        return i;
+    }
+    return -1;
+  }
+
+  function getYouTubeId(url) {
+    if (!url) return null;
+    const match = url.match(
+      /(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([a-zA-Z0-9_-]{6,})/
+    );
+    return match ? match[1] : null;
+  }
+
+  function buildYouTubeEmbed(url) {
+    const id = getYouTubeId(url);
+    if (!id) return null;
+    return `https://www.youtube.com/embed/${id}`;
+  }
+
+  function renderGenerationScreen(genIdx) {
+    const gen = generations[genIdx];
+    let demoList = '';
+    gen.songDemos.forEach((demo, i) => {
+      const embedUrl = buildYouTubeEmbed(demo.url);
+      // Use audio tag, preload demo
+      demoList += `
+        <div class="music-player">
+          <strong>🎶 ${demo.title}</strong><br>
+          ${
+            embedUrl
+              ? `<iframe style="width:100%;aspect-ratio:16/9;margin-top:8px;border:0;" src="${embedUrl}" title="${demo.title}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>`
+              : `<div class="meta" style="margin-top:8px;">Add YouTube URL for this track.</div>`
+          }
+        </div>
+      `;
+    });
+    // Top songs
+    let topSongsHtml = "<ul>";
+    gen.topSongs.forEach(song => { topSongsHtml += "<li>"+song+"</li>";});
+    topSongsHtml += "</ul>";
+
+    // Navigation
+    let navButtons = '';
+    // Like/Dislike only if not at edge
+    let noPast = (genIdx === 0);
+    let noFuture = (genIdx === generations.length-1);
+
+    // Main "Do you like this?" question
+    navButtons += `
+      <div class="likes-buttons">
+        <button id="like-yes">👍 I like it!</button>
+        <button id="like-no">👎 Not my vibe</button>
+      </div>
+    `;
+
+    let pathButtons = "";
+    if (!noPast) {
+      pathButtons += `<button id="to-past" style="margin-top:6px;">⬅ Explore Past Generation</button>`;
+    } else {
+      pathButtons += `<button disabled>No more past generations</button>`;
+    }
+
+    if (!noFuture) {
+      pathButtons += `<button id="to-future" style="margin-top:6px;">Explore Future Generation ➡</button>`;
+    } else {
+      pathButtons += `<button disabled>No more future generations</button>`;
+    }
+
+    let genSection = `
+      <div class="generation-section" >
+        <div class="meta"><span class="emoji">${gen.emoji}</span> <span style="font-size:1.12em;font-weight:bolder">${gen.name}</span></div>
+        <div style="font-style:italic;color:#b4bfec">${gen.genres} · ${gen.mood}</div>
+        <div class="artists"><b>Key Artists:</b> ${gen.artists}</div>
+        <div><b>Motto/Quote:</b> <span style="color:#ffd369">${gen.phrase}</span></div>
+        <div class="song-list"><b>Demo Instrumental Tracks:</b>${demoList}</div>
+        <div class="top-songs"><b>Top Songs from this Era:</b> ${topSongsHtml}</div>
+        <div><b>Common Instruments:</b> ${gen.instruments}</div>
+        <div style="margin:7px 0 15px 0;"><b>About this generation:</b><br> ${gen.about}</div>
+        <div class="meta" style="margin-bottom:10px;">
+           You are in the <b>${ordinalSuffix(genIdx+1)} out of ${generations.length} musical generations</b>.
+        </div>
+        ${navButtons}
+        <div id="choose-paths" style="display:none;margin-top:12px;">
+          <div style="font-size:1em;font-weight:bold;margin-bottom:8px;">Where would you like to go?</div>
+          ${pathButtons}
+        </div>
+      </div>
+    `;
+    stepGeneration.innerHTML = `
+      <h1>Your Musical Generation</h1>
+      ${genSection}
+      <div style="margin:18px 0 0 0; text-align:center;">
+        <button id="restart">🔄 Start Over</button>
+      </div>
+    `;
+
+    // After render attaches
+    document.getElementById("like-yes").onclick = () => {
+      renderDetailedView(genIdx);
+      stepGeneration.style.display = 'none';
+      stepDetailed.style.display = '';
+    };
+    document.getElementById("like-no").onclick = () => {
+      // Show two pathway buttons
+      document.getElementById("choose-paths").style.display = "";
+    };
+
+    const btnPast = document.getElementById("to-past");
+    const btnFuture = document.getElementById("to-future");
+    if(btnPast) {
+      btnPast.onclick = function() {
+        if (genIdx === 0) {
+          // This should not happen
+          alert("No more past generations to explore.");
+        } else {
+          renderGenerationScreen(genIdx - 1);
+        }
+      };
+    }
+    if(btnFuture) {
+      btnFuture.onclick = function() {
+        if (genIdx === generations.length-1) {
+          alert("No more future generations to explore.");
+        } else {
+          renderGenerationScreen(genIdx + 1);
+        }
+      };
+    }
+
+    document.getElementById("restart").onclick = function() {
+      stepGeneration.style.display = 'none';
+      stepDetailed.style.display = 'none';
+      stepDob.style.display = '';
+      // Reset any state
+      document.getElementById('dob').value = '';
+    };
+  }
+
+  function renderDetailedView(genIdx) {
+    const gen = generations[genIdx];
+    
+    // Build demo tracks
+    let demoList = '';
+    gen.songDemos.forEach((demo, i) => {
+      const embedUrl = buildYouTubeEmbed(demo.url);
+      demoList += `
+        <div class="music-player">
+          <strong>🎶 ${demo.title}</strong><br>
+          ${
+            embedUrl
+              ? `<iframe style="width:100%;aspect-ratio:16/9;margin-top:8px;border:0;" src="${embedUrl}" title="${demo.title}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>`
+              : `<div class="meta" style="margin-top:8px;">Add YouTube URL for this track.</div>`
+          }
+        </div>
+      `;
+    });
+    
+    // Top songs
+    let topSongsHtml = "<ul>";
+    gen.topSongs.forEach(song => { topSongsHtml += "<li>"+song+"</li>";});
+    topSongsHtml += "</ul>";
+
+    // Fun facts
+    let funFactsHtml = "<ul style='list-style-type: none; padding-left: 0;'>";
+    gen.funFacts.forEach(fact => {
+      funFactsHtml += `<li style='margin: 10px 0; padding-left: 20px; position: relative;'><span style='position: absolute; left: 0;'>✨</span>${fact}</li>`;
+    });
+    funFactsHtml += "</ul>";
+
+    let detailedSection = `
+      <div class="generation-section">
+        <div class="meta"><span class="emoji">${gen.emoji}</span> <span style="font-size:1.12em;font-weight:bolder">${gen.name}</span></div>
+        <div style="font-style:italic;color:#b4bfec; margin-bottom: 20px;">${gen.genres} · ${gen.mood}</div>
+        
+        <div style="background: #1a1f34; border-radius: 8px; padding: 20px; margin: 20px 0;">
+          <h2 style="color: #ffd369; margin-top: 0;">📚 All About This Generation</h2>
+          <div class="artists"><b>Key Artists:</b> ${gen.artists}</div>
+          <div style="margin-top: 12px;"><b>Motto/Quote:</b> <span style="color:#ffd369">${gen.phrase}</span></div>
+          <div style="margin-top: 12px;"><b>Common Instruments:</b> ${gen.instruments}</div>
+          <div style="margin: 15px 0;"><b>About this generation:</b><br> ${gen.about}</div>
+        </div>
+
+        <div class="song-list" style="margin: 20px 0;"><b>Demo Instrumental Tracks:</b>${demoList}</div>
+        
+        <div class="top-songs" style="margin: 20px 0;"><b>Top Songs from this Era:</b> ${topSongsHtml}</div>
+
+        <div style="background: #1a1f34; border-radius: 8px; padding: 20px; margin: 20px 0;">
+          <h2 style="color: #ffd369; margin-top: 0;">🎉 Fun Facts</h2>
+          ${funFactsHtml}
+        </div>
+
+        <div class="meta" style="margin: 20px 0 10px 0;">
+           You are in the <b>${ordinalSuffix(genIdx+1)} out of ${generations.length} musical generations</b>.
+        </div>
+      </div>
+    `;
+    
+    stepDetailed.innerHTML = `
+      <h1>Your Musical Generation - Deep Dive</h1>
+      ${detailedSection}
+      <div style="margin:18px 0 0 0; text-align:center;">
+        <button id="back-to-generation" style="margin-right: 10px;">⬅ Back to Generation</button>
+        <button id="restart-detailed">🔄 Start Over</button>
+      </div>
+    `;
+
+    // Attach event handlers
+    document.getElementById("back-to-generation").onclick = function() {
+      stepDetailed.style.display = 'none';
+      stepGeneration.style.display = '';
+    };
+
+    document.getElementById("restart-detailed").onclick = function() {
+      stepDetailed.style.display = 'none';
+      stepGeneration.style.display = 'none';
+      stepDob.style.display = '';
+      document.getElementById('dob').value = '';
+    };
+  }
+
+  function ordinalSuffix(num) {
+    if (num % 10 == 1 && num % 100 != 11) return num + "st";
+    if (num % 10 == 2 && num % 100 != 12) return num + "nd";
+    if (num % 10 == 3 && num % 100 != 13) return num + "rd";
+    return num + "th";
+  }
+});
+</script>
+</body>
+</html>
+];
+
+document.addEventListener('DOMContentLoaded', function() {
+  // Set max date for DOB input to today
+  document.getElementById('dob').max = new Date().toISOString().split('T')[0];
+
+  const stepDob = document.getElementById("step-dob");
+  const stepGeneration = document.getElementById("step-generation");
+  const stepDetailed = document.getElementById("step-detailed");
+
+  let userGenerationIndex = null;
+
+  document.getElementById("submit-dob").onclick = function() {
+    const dobValue = document.getElementById("dob").value;
+    if (!dobValue) {
+      alert("Please enter your date of birth!");
+      return;
+    }
+    const year = (new Date(dobValue)).getFullYear();
+    userGenerationIndex = getGenerationIndexByYear(year);
+
+    if (userGenerationIndex === -1) {
+      alert("Couldn't determine your generation from the date. Please try again.");
+      return;
+    }
+    // Go to generation info page
+    renderGenerationScreen(userGenerationIndex);
+    stepDob.style.display = 'none';
+    stepGeneration.style.display = '';
+  };
+
+  function getGenerationIndexByYear(year) {
+    for (let i=0; i<generations.length; ++i) {
+      let [start, end] = generations[i].years;
+      if (year >= start && year <= end)
+        return i;
+    }
+    return -1;
+  }
+
+  function getYouTubeId(url) {
+    if (!url) return null;
+    const match = url.match(
+      /(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([a-zA-Z0-9_-]{6,})/
+    );
+    return match ? match[1] : null;
+  }
+
+  function buildYouTubeEmbed(url) {
+    const id = getYouTubeId(url);
+    if (!id) return null;
+    return `https://www.youtube.com/embed/${id}`;
+  }
+
+  function renderGenerationScreen(genIdx) {
+    const gen = generations[genIdx];
+    let demoList = '';
+    gen.songDemos.forEach((demo, i) => {
+      const embedUrl = buildYouTubeEmbed(demo.url);
+      // Use audio tag, preload demo
+      demoList += `
+        <div class="music-player">
+          <strong>🎶 ${demo.title}</strong><br>
+          ${
+            embedUrl
+              ? `<iframe style="width:100%;aspect-ratio:16/9;margin-top:8px;border:0;" src="${embedUrl}" title="${demo.title}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>`
+              : `<div class="meta" style="margin-top:8px;">Add YouTube URL for this track.</div>`
+          }
+        </div>
+      `;
+    });
+    // Top songs
+    let topSongsHtml = "<ul>";
+    gen.topSongs.forEach(song => { topSongsHtml += "<li>"+song+"</li>";});
+    topSongsHtml += "</ul>";
+
+    // Navigation
+    let navButtons = '';
+    // Like/Dislike only if not at edge
+    let noPast = (genIdx === 0);
+    let noFuture = (genIdx === generations.length-1);
+
+    // Main "Do you like this?" question
+    navButtons += `
+      <div class="likes-buttons">
+        <button id="like-yes">👍 I like it!</button>
+        <button id="like-no">👎 Not my vibe</button>
+      </div>
+    `;
+
+    let pathButtons = "";
+    if (!noPast) {
+      pathButtons += `<button id="to-past" style="margin-top:6px;">⬅ Explore Past Generation</button>`;
+    } else {
+      pathButtons += `<button disabled>No more past generations</button>`;
+    }
+
+    if (!noFuture) {
+      pathButtons += `<button id="to-future" style="margin-top:6px;">Explore Future Generation ➡</button>`;
+    } else {
+      pathButtons += `<button disabled>No more future generations</button>`;
+    }
+
+    let genSection = `
+      <div class="generation-section" >
+        <div class="meta"><span class="emoji">${gen.emoji}</span> <span style="font-size:1.12em;font-weight:bolder">${gen.name}</span></div>
+        <div style="font-style:italic;color:#b4bfec">${gen.genres} · ${gen.mood}</div>
+        <div class="artists"><b>Key Artists:</b> ${gen.artists}</div>
+        <div><b>Motto/Quote:</b> <span style="color:#ffd369">${gen.phrase}</span></div>
+        <div class="song-list"><b>Demo Instrumental Tracks:</b>${demoList}</div>
+        <div class="top-songs"><b>Top Songs from this Era:</b> ${topSongsHtml}</div>
+        <div><b>Common Instruments:</b> ${gen.instruments}</div>
+        <div style="margin:7px 0 15px 0;"><b>About this generation:</b><br> ${gen.about}</div>
+        <div class="meta" style="margin-bottom:10px;">
+           You are in the <b>${ordinalSuffix(genIdx+1)} out of ${generations.length} musical generations</b>.
+        </div>
+        ${navButtons}
+        <div id="choose-paths" style="display:none;margin-top:12px;">
+          <div style="font-size:1em;font-weight:bold;margin-bottom:8px;">Where would you like to go?</div>
+          ${pathButtons}
+        </div>
+      </div>
+    `;
+    stepGeneration.innerHTML = `
+      <h1>Your Musical Generation</h1>
+      ${genSection}
+      <div style="margin:18px 0 0 0; text-align:center;">
+        <button id="restart">🔄 Start Over</button>
+      </div>
+    `;
+
+    // After render attaches
+    document.getElementById("like-yes").onclick = () => {
+      renderDetailedView(genIdx);
+      stepGeneration.style.display = 'none';
+      stepDetailed.style.display = '';
+    };
+    document.getElementById("like-no").onclick = () => {
+      // Show two pathway buttons
+      document.getElementById("choose-paths").style.display = "";
+    };
+
+    const btnPast = document.getElementById("to-past");
+    const btnFuture = document.getElementById("to-future");
+    if(btnPast) {
+      btnPast.onclick = function() {
+        if (genIdx === 0) {
+          // This should not happen
+          alert("No more past generations to explore.");
+        } else {
+          renderGenerationScreen(genIdx - 1);
+        }
+      };
+    }
+    if(btnFuture) {
+      btnFuture.onclick = function() {
+        if (genIdx === generations.length-1) {
+          alert("No more future generations to explore.");
+        } else {
+          renderGenerationScreen(genIdx + 1);
+        }
+      };
+    }
+
+    document.getElementById("restart").onclick = function() {
+      stepGeneration.style.display = 'none';
+      stepDetailed.style.display = 'none';
+      stepDob.style.display = '';
+      // Reset any state
+      document.getElementById('dob').value = '';
+    };
+  }
+
+  function renderDetailedView(genIdx) {
+    const gen = generations[genIdx];
+    
+    // Build demo tracks
+    let demoList = '';
+    gen.songDemos.forEach((demo, i) => {
+      const embedUrl = buildYouTubeEmbed(demo.url);
+      demoList += `
+        <div class="music-player">
+          <strong>🎶 ${demo.title}</strong><br>
+          ${
+            embedUrl
+              ? `<iframe style="width:100%;aspect-ratio:16/9;margin-top:8px;border:0;" src="${embedUrl}" title="${demo.title}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>`
+              : `<div class="meta" style="margin-top:8px;">Add YouTube URL for this track.</div>`
+          }
+        </div>
+      `;
+    });
+    
+    // Top songs
+    let topSongsHtml = "<ul>";
+    gen.topSongs.forEach(song => { topSongsHtml += "<li>"+song+"</li>";});
+    topSongsHtml += "</ul>";
+
+    // Fun facts
+    let funFactsHtml = "<ul style='list-style-type: none; padding-left: 0;'>";
+    gen.funFacts.forEach(fact => {
+      funFactsHtml += `<li style='margin: 10px 0; padding-left: 20px; position: relative;'><span style='position: absolute; left: 0;'>✨</span>${fact}</li>`;
+    });
+    funFactsHtml += "</ul>";
+
+    let detailedSection = `
+      <div class="generation-section">
+        <div class="meta"><span class="emoji">${gen.emoji}</span> <span style="font-size:1.12em;font-weight:bolder">${gen.name}</span></div>
+        <div style="font-style:italic;color:#b4bfec; margin-bottom: 20px;">${gen.genres} · ${gen.mood}</div>
+        
+        <div style="background: #1a1f34; border-radius: 8px; padding: 20px; margin: 20px 0;">
+          <h2 style="color: #ffd369; margin-top: 0;">📚 All About This Generation</h2>
+          <div class="artists"><b>Key Artists:</b> ${gen.artists}</div>
+          <div style="margin-top: 12px;"><b>Motto/Quote:</b> <span style="color:#ffd369">${gen.phrase}</span></div>
+          <div style="margin-top: 12px;"><b>Common Instruments:</b> ${gen.instruments}</div>
+          <div style="margin: 15px 0;"><b>About this generation:</b><br> ${gen.about}</div>
+        </div>
+
+        <div class="song-list" style="margin: 20px 0;"><b>Demo Instrumental Tracks:</b>${demoList}</div>
+        
+        <div class="top-songs" style="margin: 20px 0;"><b>Top Songs from this Era:</b> ${topSongsHtml}</div>
+
+        <div style="background: #1a1f34; border-radius: 8px; padding: 20px; margin: 20px 0;">
+          <h2 style="color: #ffd369; margin-top: 0;">🎉 Fun Facts</h2>
+          ${funFactsHtml}
+        </div>
+
+        <div class="meta" style="margin: 20px 0 10px 0;">
+           You are in the <b>${ordinalSuffix(genIdx+1)} out of ${generations.length} musical generations</b>.
+        </div>
+      </div>
+    `;
+    
+    stepDetailed.innerHTML = `
+      <h1>Your Musical Generation - Deep Dive</h1>
+      ${detailedSection}
+      <div style="margin:18px 0 0 0; text-align:center;">
+        <button id="back-to-generation" style="margin-right: 10px;">⬅ Back to Generation</button>
+        <button id="restart-detailed">🔄 Start Over</button>
+      </div>
+    `;
+
+    // Attach event handlers
+    document.getElementById("back-to-generation").onclick = function() {
+      stepDetailed.style.display = 'none';
+      stepGeneration.style.display = '';
+    };
+
+    document.getElementById("restart-detailed").onclick = function() {
+      stepDetailed.style.display = 'none';
+      stepGeneration.style.display = 'none';
+      stepDob.style.display = '';
+      document.getElementById('dob').value = '';
+    };
+  }
+
+  function ordinalSuffix(num) {
+    if (num % 10 == 1 && num % 100 != 11) return num + "st";
+    if (num % 10 == 2 && num % 100 != 12) return num + "nd";
+    if (num % 10 == 3 && num % 100 != 13) return num + "rd";
+    return num + "th";
+  }
+});
+</script>
+</body>
+</html>
